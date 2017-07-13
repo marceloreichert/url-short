@@ -4,6 +4,8 @@ var app = express();
 var base58 = require('./base58.js');
 var bodyParser = require('body-parser');
 var routes_users = require('./routes/users');
+var routes_urls = require('./routes/urls');
+var routes_stats = require('./routes/stats');
 
 require('dotenv').config();
 
@@ -17,22 +19,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
  * config routes
  */
 app.use('/users', routes_users);
-
-
-app.get('/urls/:id', function(req, res){
-  // route to serve up the homepage (index.html)
-});
-
-app.get('/stats', function(req, res){
-  // route to serve up the homepage (index.html)
-});
-
-app.get('/stats/:id', function(req, res){
-  // route to serve up the homepage (index.html)
-});
-
-app.delete('/urls/:id', function(req, res){
-  // route to serve up the homepage (index.html)
-});
+app.use('/urls', routes_urls);
+app.use('/stats', routes_stats);
 
 module.exports = app;
