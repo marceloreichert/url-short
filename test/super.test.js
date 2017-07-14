@@ -196,6 +196,26 @@ describe('Test Endpoints', function() {
   });
 
 
+  it('GET urls - should return a 404 from GET /urls/:id', function(done) {
+    chai.request(app)
+      .get('/urls/0')
+      .end(function(err, res) {
+        res.should.have.status(404);
+        done();
+      });
+  });
+
+
+  it('GET urls - should return a 301 from GET /urls/:id', function(done) {
+    chai.request(app)
+      .get('/urls/101')
+      .end(function(err, res) {
+        res.should.redirectTo('http://www.powertask.com.br/');
+        done();
+      });
+  });
+
+
   it('DELETE user 404 Not found', function(done) {
     chai.request(app)
       .delete('/users/xxx')
