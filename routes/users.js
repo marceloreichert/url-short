@@ -5,6 +5,8 @@ var router = express.Router();
 var assert = require('assert');
 var base58 = require('../base58.js');
 
+var user = require('../controllers/user.js');
+
 require('dotenv').config();
 
 var mongodb_uri = process.env.MONGODB_URI;
@@ -18,30 +20,11 @@ router.post('/', function(req, res) {
   if (userId === undefined) {
     res.status(500).send();
   } else {
-    var MongoClient = require('mongodb').MongoClient;
-
-    MongoClient.connect(mongodb_uri, function(error, db) {
-      assert.equal(null, error);
-      try {
-        var collection = db.collection('users');
-        var document = {id: userId}
-
-        collection.find(document).toArray( function(error, docs) {
-          if (docs.length > 0) {
-            db.close();
-            res.status(409).send();
-          } else {
-            collection.insertOne(document, function(error, result) {
-              assert.equal(null, error);
-              db.close();
-              res.status(201).json(document);
-            });          
-          }           
-        });
-      } catch (e) {
-        console.log(e);
-        db.close();
-        res.status(500).send();
+    user.insert(userId, function(status, document) {
+      if (status == 201) {
+        res.status(status).json(document);
+      } else {
+        res.status(status).send();
       }
     });
   }
