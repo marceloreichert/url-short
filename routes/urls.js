@@ -2,14 +2,13 @@
 
 var express = require('express');
 var router = express.Router();
-var assert = require('assert');
+
+var url = require('../controllers/url.js');
+var db = require('../models/db.js');
+
+var async = require('async');
 
 require('dotenv').config();
-
-var mongodb_uri = process.env.MONGODB_URI;
-if (process.env.NODE_ENV == 'test') {
-  mongodb_uri = process.env.MONGODB_URI_TEST;      
-}
 
 router.get('/:id', function(req, res) {
   var id = req.params.id;
@@ -17,27 +16,23 @@ router.get('/:id', function(req, res) {
   if (id === undefined) {
     res.status(500).send();
   } else {
-    var MongoClient = require('mongodb').MongoClient;
+    async.series([
+      function(callback) {
+        db.connect(function(err) { callback() });
+      },
 
-    MongoClient.connect(mongodb_uri, function(error, db) {
-      assert.equal(null, error);
-      try {
-        var urls = db.collection('urls');
-        urls.findOne({id: Number(id)}, function(err, document) {
-          db.close();
-          if (document == null) {
-            res.status(404).send();
+      function(callback) {
+        url.getUrl(id, function(status, document) {
+          if (status == 301) {
+            res.redirect(status, document.url);
           } else {
-            res.redirect(301, document.url);  
+            res.status(status).send();
           }
         });
-
-      } catch (e) {
-        console.log(e);
-        db.close();
-        res.status(500).send();
       }
-    });
+    ], function() {
+      db.close(function(err) {});      
+    }); 
   }
 });
 
@@ -48,27 +43,20 @@ router.delete('/:id', function(req, res) {
   if (id === undefined) {
     res.status(500).send();
   } else {
-    var MongoClient = require('mongodb').MongoClient;
 
-    MongoClient.connect(mongodb_uri, function(error, db) {
-      assert.equal(null, error);
-      try {
-        var urls = db.collection('urls');
-        urls.deleteMany({id: Number(id)}, function(error, result) {
-          db.close();
-          if (result.deletedCount > 0) {
-            res.status(200).send();
-          } else {
-            res.status(404).send();              
-          }
+    async.series([
+      function(callback) {
+        db.connect(function(err) { callback() });
+      },
+
+      function(callback) {
+        url.delete(id, function(status) {
+          res.status(status).send();
         });
-
-      } catch (e) {
-        console.log(e);
-        db.close();
-        res.status(500).send();
       }
-    });
+    ], function() {
+      db.close(function(err) {});      
+    }); 
   }
 });
 
