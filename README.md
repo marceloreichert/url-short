@@ -40,4 +40,4 @@ HOST = 'http://localhost:3000/'
 
 ### Testes
 
-Executar mocha no Terminal.
+Executar Terminal: npm test
